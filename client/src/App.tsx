@@ -5,12 +5,22 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 
+import HomePage from "@/pages/HomePage";
+import AuthPage from "@/pages/AuthPage";
+import MovieDetailsPage from "@/pages/MovieDetailsPage";
+import SeatSelectionPage from "@/pages/SeatSelectionPage";
+import BookingSuccessPage from "@/pages/BookingSuccessPage";
+import MyBookingsPage from "@/pages/MyBookingsPage";
+
 function Router() {
   return (
     <Switch>
-      {/* Add pages below */}
-      {/* <Route path="/" component={Home}/> */}
-      {/* Fallback to 404 */}
+      <Route path="/" component={HomePage} />
+      <Route path="/auth" component={AuthPage} />
+      <Route path="/movies/:id" component={MovieDetailsPage} />
+      <Route path="/shows/:id/seats" component={SeatSelectionPage} />
+      <Route path="/bookings/:id" component={BookingSuccessPage} />
+      <Route path="/my-bookings" component={MyBookingsPage} />
       <Route component={NotFound} />
     </Switch>
   );
