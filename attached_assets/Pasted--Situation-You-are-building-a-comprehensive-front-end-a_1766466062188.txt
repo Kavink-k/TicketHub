@@ -1,0 +1,62 @@
+**Situation**
+You are building a comprehensive front-end application that replicates the core functionality and user experience of BookMyShow, a ticket booking platform. This project requires multiple interconnected screens, complex state management, and seamless navigation flows across authentication, browsing, selection, and checkout stages. The tech stack consists of Vite as the build tool, React.js for the front-end framework, Node.js for the backend server, and MySQL for persistent data storage.
+
+**Task**
+The assistant should create a complete, production-ready front-end project with all screens, components, and UI interactions for a ticket booking platform using Vite + React.js. The assistant should build a fully functional application structure with clean, reusable components, responsive design, and proper state management that handles the complete user journey from authentication through ticket confirmation. The assistant should also provide the backend Node.js server setup with MySQL database configuration and API endpoints to support all front-end features.
+
+**Objective**
+Deliver a fully implemented full-stack codebase using Vite, React.js, Node.js, and MySQL that demonstrates modern development practices, component architecture, and user experience patterns. The application should be immediately deployable, maintainable, and serve as a reference implementation for ticket booking platforms with proper database schema, API routes, and front-end integration.
+
+**Knowledge**
+The application must include 11 core feature areas:
+1. User Authentication (login, signup, OTP/password flow, user profile)
+2. Homepage (city selector, search bar, banners, category sections, trending)
+3. Movie/Event Listing (grid layout, filters by language/genre/format/price, sorting options, movie cards with metadata)
+4. Movie/Event Detail (banner, details, description, cast & crew, YouTube trailer embed, show timings by theatre)
+5. Theatre & Show Timing Selection (theatre list, timing slots, format badges, clickable timing selection)
+6. Seat Selection (grid layout, seat states: available/selected/booked, categories: VIP/Premium/Normal, auto price calculation)
+7. Snacks & Add-ons (list with add/remove/quantity controls, price integration)
+8. Checkout/Payment (booking summary, seat details, theatre/timing info, price breakup, payment method UI: UPI/Cards/Wallets, offer code application)
+9. Ticket Confirmation (success message, dummy QR code, ticket download UI, summary view)
+10. Profile & My Tickets (profile page, past/upcoming bookings, logout)
+11. Optional Features (dark/light theme toggle, favorites/watchlist, notifications UI, offers page, reviews & ratings, loading skeletons, page animations)
+
+**Technology Stack:**
+- **Frontend**: Vite (build tool), React.js (UI framework), React Router (navigation), Context API or Redux (state management)
+- **Backend**: Node.js with Express.js (server framework)
+- **Database**: MySQL (relational database for users, movies, theatres, bookings, seats, payments)
+- **Additional**: Axios/Fetch for API calls, JWT for authentication, bcrypt for password hashing
+
+**Database Schema Requirements:**
+- Users table (id, email, password, name, phone, city, created_at)
+- Movies table (id, title, genre, duration, rating, description, poster_url, trailer_url, release_date)
+- Theatres table (id, name, city, location, total_screens)
+- Shows table (id, movie_id, theatre_id, show_time, format, available_seats)
+- Seats table (id, show_id, seat_number, category, price, status: available/booked/selected)
+- Bookings table (id, user_id, show_id, total_price, payment_status, created_at)
+- Snacks table (id, name, price, image_url)
+- BookingSnacks table (id, booking_id, snack_id, quantity)
+
+**API Endpoints to Implement:**
+- Authentication: POST /api/auth/signup, POST /api/auth/login, POST /api/auth/verify-otp
+- Movies: GET /api/movies, GET /api/movies/:id, GET /api/movies/search
+- Theatres: GET /api/theatres, GET /api/theatres/:id/shows
+- Shows: GET /api/shows/:id/seats
+- Bookings: POST /api/bookings, GET /api/bookings/user/:id, GET /api/bookings/:id
+- Snacks: GET /api/snacks
+- Seats: PATCH /api/seats/:id/status
+
+The assistant should use modern front-end technologies and best practices including: clean, reusable component architecture, responsive layout design, proper state management, Vite's fast development environment, API integration with error handling, loading states, and smooth page transitions.
+
+**Examples**
+The assistant should follow these implementation standards:
+- Component structure: Modular, single-responsibility React components with clear prop interfaces and custom hooks
+- Project structure: Organized folders (components/, pages/, services/, hooks/, context/, utils/, assets/)
+- Data flow: API calls from Node.js backend, MySQL queries, proper request/response handling
+- Styling: Consistent design system with responsive breakpoints (mobile, tablet, desktop)
+- State management: Centralized handling of user authentication, cart/booking state, and filters using Context API or Redux
+- Navigation: Smooth transitions between all 11 feature areas with React Router, proper back/forward functionality
+- Accessibility: Semantic HTML, ARIA labels where appropriate, keyboard navigation support
+- Development: Vite's HMR for fast development, environment variables for API endpoints, proper build optimization
+
+You are an expert full-stack engineer specializing in Vite + React.js front-end development and Node.js + MySQL backend architecture. Build a complete, production-ready ticket booking platform with all 11 feature areas using modern tech stack. Implement clean code architecture, reusable React components, responsive design, comprehensive API integration, and proper database schema. Provide the complete project structure for both frontend and backend with all necessary files, components, configurations, database migrations, and API routes ready for immediate use and deployment.
