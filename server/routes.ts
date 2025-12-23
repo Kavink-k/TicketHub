@@ -160,7 +160,7 @@ async function seedDatabase() {
     releaseDate: new Date("2008-07-18"),
   }).returning();
 
-   const movie3 = await storage.db.insert(schema.movies).values({
+  const movie3 = await storage.db.insert(schema.movies).values({
     title: "Interstellar",
     genre: "Sci-Fi",
     duration: 169,
@@ -169,6 +169,83 @@ async function seedDatabase() {
     posterUrl: "https://image.tmdb.org/t/p/w500/gEU2QniL6E8ahMcafCUyGdjEOL.jpg",
     trailerUrl: "https://www.youtube.com/embed/zSWdZVtXT7E",
     releaseDate: new Date("2014-11-07"),
+  }).returning();
+
+  const movie4 = await storage.db.insert(schema.movies).values({
+    title: "Avengers: Endgame",
+    genre: "Action",
+    duration: 181,
+    rating: "UA",
+    description: "After the devastating events that wiped out half the universe, the Avengers assemble once more to reverse Thanos' actions and restore balance.",
+    posterUrl: "https://image.tmdb.org/t/p/w500/or06FQrDklbnkAqJiVWI0nVjagV.jpg",
+    trailerUrl: "https://www.youtube.com/embed/TcMBFSGVi1c",
+    releaseDate: new Date("2019-04-26"),
+  }).returning();
+
+  const movie5 = await storage.db.insert(schema.movies).values({
+    title: "Pulp Fiction",
+    genre: "Drama",
+    duration: 154,
+    rating: "A",
+    description: "The lives of two mob hitmen, a boxer, a gangster and his wife intertwine in four tales of violence and redemption.",
+    posterUrl: "https://image.tmdb.org/t/p/w500/dM2w4PZqPHwWQx4isNRjYW6i1F6.jpg",
+    trailerUrl: "https://www.youtube.com/embed/s7EdQ4FqbdE",
+    releaseDate: new Date("1994-10-14"),
+  }).returning();
+
+  const movie6 = await storage.db.insert(schema.movies).values({
+    title: "The Shawshank Redemption",
+    genre: "Drama",
+    duration: 142,
+    rating: "A",
+    description: "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.",
+    posterUrl: "https://image.tmdb.org/t/p/w500/q6725aR8Zs4IwGMAnUtaDtjH3z8.jpg",
+    trailerUrl: "https://www.youtube.com/embed/NmzuHjWmXOc",
+    releaseDate: new Date("1994-09-23"),
+  }).returning();
+
+  const movie7 = await storage.db.insert(schema.movies).values({
+    title: "The Matrix",
+    genre: "Sci-Fi",
+    duration: 136,
+    rating: "UA",
+    description: "A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.",
+    posterUrl: "https://image.tmdb.org/t/p/w500/f89U3ADr1oiB1s9GkdPOEpXqfAC.jpg",
+    trailerUrl: "https://www.youtube.com/embed/vKQi3bBA1y8",
+    releaseDate: new Date("1999-03-31"),
+  }).returning();
+
+  const movie8 = await storage.db.insert(schema.movies).values({
+    title: "Parasite",
+    genre: "Drama",
+    duration: 132,
+    rating: "UA",
+    description: "Greed and class discrimination threaten the newly formed symbiotic relationship between the wealthy Park family and the destitute Kim clan.",
+    posterUrl: "https://image.tmdb.org/t/p/w500/7IeUWlBSMDyIwmJ0IB7vyJySXyJ.jpg",
+    trailerUrl: "https://www.youtube.com/embed/isloHekVcag",
+    releaseDate: new Date("2019-05-30"),
+  }).returning();
+
+  const movie9 = await storage.db.insert(schema.movies).values({
+    title: "Oppenheimer",
+    genre: "Biography",
+    duration: 180,
+    rating: "UA",
+    description: "The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb during World War II.",
+    posterUrl: "https://image.tmdb.org/t/p/w500/8Gxv8gStzWANeGkN3UNO59pHk2J.jpg",
+    trailerUrl: "https://www.youtube.com/embed/uYPbbksJxJ8",
+    releaseDate: new Date("2023-07-21"),
+  }).returning();
+
+  const movie10 = await storage.db.insert(schema.movies).values({
+    title: "Dune",
+    genre: "Sci-Fi",
+    duration: 166,
+    rating: "UA",
+    description: "Paul Atreides travels to the dangerous planet Arrakis to ensure the future of his family and people in this adaptation of Frank Herbert's epic novel.",
+    posterUrl: "https://image.tmdb.org/t/p/w500/lJvsGW63g2sGrAvoznkQ0nRnabw.jpg",
+    trailerUrl: "https://www.youtube.com/embed/n9xhJrCXkzs",
+    releaseDate: new Date("2021-10-22"),
   }).returning();
 
   // Theatres

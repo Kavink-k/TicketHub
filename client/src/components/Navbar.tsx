@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Search, User, LogOut, Ticket } from "lucide-react";
+import { Search, User, LogOut, Ticket, MapPin, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,13 +11,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { useState } from "react";
+
+const CITIES = ["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata", "Pune", "Ahmedabad"];
 
 export function Navbar() {
   const { user, logout } = useAuth();
   const [location] = useLocation();
+  const [selectedCity, setSelectedCity] = useState("Mumbai");
 
   return (
-    <nav className="glass-header h-16 flex items-center px-4 md:px-8">
+    <nav className="glass-header h-16 flex items-center px-4 md:px-8 border-b border-border/40">
       <div className="container mx-auto flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
@@ -40,9 +44,29 @@ export function Navbar() {
 
         {/* Actions */}
         <div className="flex items-center gap-4">
-          <Link href="/cities" className="text-sm font-medium text-muted-foreground hover:text-foreground hidden sm:block">
-            New York <span className="text-xs">▼</span>
-          </Link>
+          {/* Location Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="text-sm font-medium gap-2 hidden sm:flex h-9">
+                <MapPin className="w-4 h-4" />
+                {selectedCity}
+                <ChevronDown className="w-3 h-3 opacity-50" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              <DropdownMenuLabel className="text-xs font-semibold">Select City</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {CITIES.map((city) => (
+                <DropdownMenuItem
+                  key={city}
+                  onClick={() => setSelectedCity(city)}
+                  className={selectedCity === city ? "bg-primary/10" : ""}
+                >
+                  {city}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {user ? (
             <DropdownMenu>

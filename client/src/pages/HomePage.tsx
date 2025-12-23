@@ -3,6 +3,7 @@ import { MovieCard } from "@/components/MovieCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { ChevronRight } from "lucide-react";
 import heroImage from "@assets/hero-placeholder.jpg"; // Placeholder, handled in vite
 
@@ -10,7 +11,7 @@ export default function HomePage() {
   const { data: movies, isLoading } = useMovies();
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
       {/* Hero Carousel - Simplified for MVP */}
@@ -68,7 +69,7 @@ export default function HomePage() {
       </div>
 
       {/* Events Banner */}
-      <div className="container mx-auto px-4 md:px-8 py-8">
+      <div className="container mx-auto px-4 md:px-8 py-8 mb-8">
         <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-purple-600 to-blue-600 p-8 md:p-12 text-center text-white shadow-2xl">
           <h2 className="text-3xl font-display font-bold mb-4">Endless Entertainment</h2>
           <p className="mb-8 opacity-90">Concerts, Stand-up Comedy, Workshops & More</p>
@@ -80,6 +81,10 @@ export default function HomePage() {
           <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 pointer-events-none"></div>
         </div>
       </div>
+
+      {/* Footer - Push to bottom */}
+      <div className="flex-1" />
+      <Footer />
     </div>
   );
 }
