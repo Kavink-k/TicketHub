@@ -1,7 +1,5 @@
-import { useState } from "react";
 import { type Seat } from "@shared/schema";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 interface SeatLayoutProps {
   seats: Seat[];

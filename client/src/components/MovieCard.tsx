@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { type Movie } from "@shared/schema";
-import { Star, Clock } from "lucide-react";
+import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MovieCardProps {

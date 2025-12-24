@@ -34,6 +34,14 @@ export async function setupVite(server: Server, app: Express) {
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;
 
+    // Only handle HTML requests with this catch-all route
+    // Let CSS, JS, and other static assets be handled by Vite's built-in middleware
+    const isHtmlRequest = url === "/" || url.endsWith(".html");
+    
+    if (!isHtmlRequest) {
+      return next();
+    }
+
     try {
       const clientTemplate = path.resolve(
         import.meta.dirname,

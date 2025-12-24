@@ -6,11 +6,10 @@ import { CheckCircle2, Download, Share2 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { format } from "date-fns";
 import { Loader2 } from "lucide-react";
-import { useRef } from "react";
 
 export default function BookingSuccessPage() {
   const [, params] = useRoute("/bookings/:id");
-  const bookingId = parseInt(params?.id || "0");
+  const bookingId = parseInt(params?.id || "0");      
   const { data: booking, isLoading } = useBooking(bookingId);
 
   if (isLoading || !booking) {

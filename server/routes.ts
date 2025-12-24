@@ -3,8 +3,22 @@ import type { Express } from "express";
 import type { Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
-import { api } from "@shared/routes";
+import { 
+  api, 
+  theatreQuerySchema, 
+  showQuerySchema, 
+  createBookingSchema, 
+  updateSeatStatusSchema 
+} from "@shared/routes";
 import { z } from "zod";
+// Import Sequelize models for seeding
+import { 
+  Movie, 
+  Theatre, 
+  Show, 
+  Seat, 
+  Snack 
+} from "./models";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -27,23 +41,37 @@ export async function registerRoutes(
 
   // Theatres
   app.get(api.theatres.list.path, async (req, res) => {
-    const city = req.query.city as string | undefined;
-    const theatres = await storage.getTheatres(city);
-    res.json(theatres);
+    try {
+      const queryResult = theatreQuerySchema.safeParse(req.query);
+      if (!queryResult.success) {
+        return res.status(400).json({ message: "Invalid query parameters" });
+      }
+      
+      const { city } = queryResult.data;
+      const theatres = await storage.getTheatres(city);
+      res.json(theatres);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
   });
 
   // Shows
   app.get(api.shows.list.path, async (req, res) => {
-    const movieId = req.query.movieId;
-    const theatreId = req.query.theatreId;
-    
-    if (!movieId) return res.sendStatus(400);
+    try {
+      const queryResult = showQuerySchema.safeParse(req.query);
+      if (!queryResult.success) {
+        return res.status(400).json({ message: "Invalid query parameters" });
+      }
 
-    const shows = await storage.getShows(
-      Number(movieId),
-      theatreId ? Number(theatreId) : undefined
-    );
-    res.json(shows);
+      const { movieId, theatreId } = queryResult.data;
+      const shows = await storage.getShows(
+        Number(movieId),
+        theatreId ? Number(theatreId) : undefined
+      );
+      res.json(shows);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
   });
 
   app.get(api.shows.get.path, async (req, res) => {
@@ -59,9 +87,26 @@ export async function registerRoutes(
 
   // Seats (Update status - mostly for internal/realtime but added endpoint)
   app.patch(api.seats.updateStatus.path, async (req, res) => {
-    const { status } = req.body;
-    const seat = await storage.updateSeatStatus(Number(req.params.id), status);
-    res.json(seat);
+    try {
+      const validationResult = updateSeatStatusSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: "Invalid input", 
+          field: validationResult.error.issues[0]?.path[0] 
+        });
+      }
+
+      const { status } = validationResult.data;
+      const seat = await storage.updateSeatStatus(Number(req.params.id), status);
+      
+      if (!seat) {
+        return res.status(404).json({ message: "Seat not found" });
+      }
+      
+      res.json(seat);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
   });
 
   // Snacks
@@ -74,46 +119,58 @@ export async function registerRoutes(
   app.post(api.bookings.create.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
 
-    const { showId, seatIds, snacks } = req.body;
-    
-    // Calculate total price (Simplified: assuming backend should calculate or trust frontend for now. 
-    // Ideally backend fetches seat prices. For MVP, we will fetch seat prices here.)
-    
-    // Verify seats
-    const seats = await storage.getSeats(showId);
-    const selectedSeats = seats.filter(s => seatIds.includes(s.id));
-    
-    // Check if available
-    if (selectedSeats.some(s => s.status === 'booked')) {
-      return res.status(400).json({ message: "Some seats are already booked" });
+    try {
+      const validationResult = createBookingSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: "Invalid input", 
+          field: validationResult.error.issues[0]?.path[0] 
+        });
+      }
+
+      const { showId, seatIds, snacks } = validationResult.data;
+      
+      // Calculate total price (Simplified: assuming backend should calculate or trust frontend for now. 
+      // Ideally backend fetches seat prices. For MVP, we will fetch seat prices here.)
+      
+      // Verify seats
+      const seats = await storage.getSeats(showId);
+      const selectedSeats = seats.filter(s => seatIds.includes(s.id));
+      
+      // Check if available
+      if (selectedSeats.some(s => s.status === 'booked')) {
+        return res.status(400).json({ message: "Some seats are already booked" });
+      }
+
+      let totalPrice = selectedSeats.reduce((sum, s) => sum + s.price, 0);
+
+      // Add snacks price
+      if (snacks && snacks.length > 0) {
+        const allSnacks = await storage.getSnacks();
+        snacks.forEach((item) => {
+          const snack = allSnacks.find(s => s.id === item.snackId);
+          if (snack) {
+            totalPrice += snack.price * item.quantity;
+          }
+        });
+      }
+
+      const booking = await storage.createBooking(
+        (req.user as any).id,
+        { showId, totalPrice },
+        seatIds,
+        snacks || []
+      );
+
+      res.status(201).json(booking);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
     }
-
-    let totalPrice = selectedSeats.reduce((sum, s) => sum + s.price, 0);
-
-    // Add snacks price
-    if (snacks && snacks.length > 0) {
-      const allSnacks = await storage.getSnacks();
-      snacks.forEach(item => {
-        const snack = allSnacks.find(s => s.id === item.snackId);
-        if (snack) {
-          totalPrice += snack.price * item.quantity;
-        }
-      });
-    }
-
-    const booking = await storage.createBooking(
-      req.user!.id,
-      { showId, totalPrice, paymentStatus: 'completed' },
-      seatIds,
-      snacks || []
-    );
-
-    res.status(201).json(booking);
   });
 
   app.get(api.bookings.list.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    const bookings = await storage.getBookings(req.user!.id);
+    const bookings = await storage.getBookings((req.user as any).id);
     res.json(bookings);
   });
 
@@ -121,12 +178,16 @@ export async function registerRoutes(
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const booking = await storage.getBooking(Number(req.params.id));
     if (!booking) return res.sendStatus(404);
-    if (booking.userId !== req.user!.id) return res.sendStatus(403);
+    if (booking.userId !== (req.user as any).id) return res.sendStatus(403);
     res.json(booking);
   });
 
-  // Seed Data Function
-  await seedDatabase();
+  // Seed Data Function (only if database is available)
+  try {
+    await seedDatabase();
+  } catch (error) {
+    console.warn('Could not seed database (likely no MySQL connection):', error);
+  }
 
   return httpServer;
 }
@@ -138,7 +199,7 @@ async function seedDatabase() {
   console.log("Seeding database...");
 
   // Movies
-  const movie1 = await storage.db.insert(schema.movies).values({
+  const movie1 = await Movie.create({
     title: "Inception",
     genre: "Sci-Fi",
     duration: 148,
@@ -147,9 +208,9 @@ async function seedDatabase() {
     posterUrl: "https://image.tmdb.org/t/p/w500/9gk7admal4zlWH9O9GLyxHgWTPd.jpg",
     trailerUrl: "https://www.youtube.com/embed/YoHD9XEInc0",
     releaseDate: new Date("2010-07-16"),
-  }).returning();
+  });
 
-  const movie2 = await storage.db.insert(schema.movies).values({
+  const movie2 = await Movie.create({
     title: "The Dark Knight",
     genre: "Action",
     duration: 152,
@@ -158,9 +219,9 @@ async function seedDatabase() {
     posterUrl: "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
     trailerUrl: "https://www.youtube.com/embed/EXeTwQWrcwY",
     releaseDate: new Date("2008-07-18"),
-  }).returning();
+  });
 
-  const movie3 = await storage.db.insert(schema.movies).values({
+  const movie3 = await Movie.create({
     title: "Interstellar",
     genre: "Sci-Fi",
     duration: 169,
@@ -169,9 +230,9 @@ async function seedDatabase() {
     posterUrl: "https://image.tmdb.org/t/p/w500/gEU2QniL6E8ahMcafCUyGdjEOL.jpg",
     trailerUrl: "https://www.youtube.com/embed/zSWdZVtXT7E",
     releaseDate: new Date("2014-11-07"),
-  }).returning();
+  });
 
-  const movie4 = await storage.db.insert(schema.movies).values({
+  const movie4 = await Movie.create({
     title: "Avengers: Endgame",
     genre: "Action",
     duration: 181,
@@ -180,9 +241,9 @@ async function seedDatabase() {
     posterUrl: "https://image.tmdb.org/t/p/w500/or06FQrDklbnkAqJiVWI0nVjagV.jpg",
     trailerUrl: "https://www.youtube.com/embed/TcMBFSGVi1c",
     releaseDate: new Date("2019-04-26"),
-  }).returning();
+  });
 
-  const movie5 = await storage.db.insert(schema.movies).values({
+  const movie5 = await Movie.create({
     title: "Pulp Fiction",
     genre: "Drama",
     duration: 154,
@@ -191,9 +252,9 @@ async function seedDatabase() {
     posterUrl: "https://image.tmdb.org/t/p/w500/dM2w4PZqPHwWQx4isNRjYW6i1F6.jpg",
     trailerUrl: "https://www.youtube.com/embed/s7EdQ4FqbdE",
     releaseDate: new Date("1994-10-14"),
-  }).returning();
+  });
 
-  const movie6 = await storage.db.insert(schema.movies).values({
+  const movie6 = await Movie.create({
     title: "The Shawshank Redemption",
     genre: "Drama",
     duration: 142,
@@ -202,9 +263,9 @@ async function seedDatabase() {
     posterUrl: "https://image.tmdb.org/t/p/w500/q6725aR8Zs4IwGMAnUtaDtjH3z8.jpg",
     trailerUrl: "https://www.youtube.com/embed/NmzuHjWmXOc",
     releaseDate: new Date("1994-09-23"),
-  }).returning();
+  });
 
-  const movie7 = await storage.db.insert(schema.movies).values({
+  const movie7 = await Movie.create({
     title: "The Matrix",
     genre: "Sci-Fi",
     duration: 136,
@@ -213,9 +274,9 @@ async function seedDatabase() {
     posterUrl: "https://image.tmdb.org/t/p/w500/f89U3ADr1oiB1s9GkdPOEpXqfAC.jpg",
     trailerUrl: "https://www.youtube.com/embed/vKQi3bBA1y8",
     releaseDate: new Date("1999-03-31"),
-  }).returning();
+  });
 
-  const movie8 = await storage.db.insert(schema.movies).values({
+  const movie8 = await Movie.create({
     title: "Parasite",
     genre: "Drama",
     duration: 132,
@@ -224,9 +285,9 @@ async function seedDatabase() {
     posterUrl: "https://image.tmdb.org/t/p/w500/7IeUWlBSMDyIwmJ0IB7vyJySXyJ.jpg",
     trailerUrl: "https://www.youtube.com/embed/isloHekVcag",
     releaseDate: new Date("2019-05-30"),
-  }).returning();
+  });
 
-  const movie9 = await storage.db.insert(schema.movies).values({
+  const movie9 = await Movie.create({
     title: "Oppenheimer",
     genre: "Biography",
     duration: 180,
@@ -235,9 +296,9 @@ async function seedDatabase() {
     posterUrl: "https://image.tmdb.org/t/p/w500/8Gxv8gStzWANeGkN3UNO59pHk2J.jpg",
     trailerUrl: "https://www.youtube.com/embed/uYPbbksJxJ8",
     releaseDate: new Date("2023-07-21"),
-  }).returning();
+  });
 
-  const movie10 = await storage.db.insert(schema.movies).values({
+  const movie10 = await Movie.create({
     title: "Dune",
     genre: "Sci-Fi",
     duration: 166,
@@ -246,54 +307,54 @@ async function seedDatabase() {
     posterUrl: "https://image.tmdb.org/t/p/w500/lJvsGW63g2sGrAvoznkQ0nRnabw.jpg",
     trailerUrl: "https://www.youtube.com/embed/n9xhJrCXkzs",
     releaseDate: new Date("2021-10-22"),
-  }).returning();
+  });
 
   // Theatres
-  const theatre1 = await storage.db.insert(schema.theatres).values({
+  const theatre1 = await Theatre.create({
     name: "PVR Cinemas",
     city: "Mumbai",
     location: "Phoenix Marketcity, Kurla",
     totalScreens: 5,
-  }).returning();
+  });
 
-  const theatre2 = await storage.db.insert(schema.theatres).values({
+  const theatre2 = await Theatre.create({
     name: "INOX",
     city: "Mumbai",
     location: "R-City Mall, Ghatkopar",
     totalScreens: 4,
-  }).returning();
+  });
 
   // Snacks
-  await storage.db.insert(schema.snacks).values([
+  await Snack.bulkCreate([
     { name: "Salted Popcorn (Large)", price: 350, imageUrl: "https://placehold.co/200x200?text=Popcorn" },
     { name: "Coca Cola (500ml)", price: 150, imageUrl: "https://placehold.co/200x200?text=Coke" },
     { name: "Nachos with Cheese", price: 250, imageUrl: "https://placehold.co/200x200?text=Nachos" },
   ]);
 
   // Shows
-  const show1 = await storage.db.insert(schema.shows).values({
-    movieId: movie1[0].id,
-    theatreId: theatre1[0].id,
-    showTime: new Date(new Date().setHours(18, 0, 0, 0)), // Today 6 PM
+  const show1 = await Show.create({
+    movieId: movie1.id,
+    theatreId: theatre1.id,
+    showTime: new Date(), // Current time - will be set dynamically
     format: "IMAX 2D",
     availableSeats: 60,
-  }).returning();
+  });
 
-  const show2 = await storage.db.insert(schema.shows).values({
-    movieId: movie2[0].id,
-    theatreId: theatre1[0].id,
-    showTime: new Date(new Date().setHours(21, 0, 0, 0)), // Today 9 PM
+  const show2 = await Show.create({
+    movieId: movie2.id,
+    theatreId: theatre1.id,
+    showTime: new Date(), // Current time - will be set dynamically
     format: "2D",
     availableSeats: 50,
-  }).returning();
+  });
   
-  const show3 = await storage.db.insert(schema.shows).values({
-    movieId: movie3[0].id,
-    theatreId: theatre2[0].id,
-    showTime: new Date(new Date().setHours(14, 0, 0, 0)), // Today 2 PM
+  const show3 = await Show.create({
+    movieId: movie3.id,
+    theatreId: theatre2.id,
+    showTime: new Date(), // Current time - will be set dynamically
     format: "2D",
     availableSeats: 40,
-  }).returning();
+  });
 
   // Seats for Show 1 (Grid 10x6)
   const rows = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -309,7 +370,7 @@ async function seedDatabase() {
     
     for (let j = 1; j <= 10; j++) {
       seatData.push({
-        showId: show1[0].id,
+        showId: show1.id,
         seatNumber: `${row}${j}`,
         category,
         price,
@@ -330,7 +391,7 @@ async function seedDatabase() {
     
     for (let j = 1; j <= 8; j++) { // Smaller hall
       seatData2.push({
-        showId: show2[0].id,
+        showId: show2.id,
         seatNumber: `${row}${j}`,
         category,
         price,
@@ -339,7 +400,7 @@ async function seedDatabase() {
     }
   }
   
-    const seatData3 = [];
+  const seatData3 = [];
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     let category = 'Normal';
@@ -350,7 +411,7 @@ async function seedDatabase() {
     
     for (let j = 1; j <= 8; j++) { // Smaller hall
       seatData3.push({
-        showId: show3[0].id,
+        showId: show3.id,
         seatNumber: `${row}${j}`,
         category,
         price,
@@ -359,11 +420,9 @@ async function seedDatabase() {
     }
   }
 
-  await storage.db.insert(schema.seats).values(seatData);
-  await storage.db.insert(schema.seats).values(seatData2);
-  await storage.db.insert(schema.seats).values(seatData3);
+  await Seat.bulkCreate(seatData);
+  await Seat.bulkCreate(seatData2);
+  await Seat.bulkCreate(seatData3);
 
   console.log("Database seeded successfully!");
 }
-
-import * as schema from "@shared/schema";

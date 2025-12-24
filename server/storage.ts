@@ -1,24 +1,21 @@
-
 import { 
-  users, movies, theatres, shows, seats, bookings, snacks, bookingSnacks,
-  type User, type InsertUser, type Movie, type Theatre, type Show, type Seat, type Booking, type Snack,
-  type InsertBooking
-} from "@shared/schema";
-import { db, pool } from "./db";
-import { eq, and, sql } from "drizzle-orm";
-import session from "express-session";
-import connectPg from "connect-pg-simple";
+  User, Movie, Theatre, Show, Seat, Booking, Snack, BookingSnack,
+  sequelize
+} from './models';
+import type { Model, ModelStatic } from 'sequelize';
+import session from 'express-session';
+import MemoryStore from 'memorystore';
 
-const PostgresSessionStore = connectPg(session);
+// Use MemoryStore for development when MySQL is not available
+const MemoryStoreSession = MemoryStore(session);
 
 export interface IStorage {
   sessionStore: session.Store;
-  db: typeof db;
   
   // User
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  createUser(user: Partial<User>): Promise<User>;
 
   // Movies
   getMovies(): Promise<Movie[]>;
@@ -40,160 +37,205 @@ export interface IStorage {
   getSnacks(): Promise<Snack[]>;
 
   // Bookings
-  createBooking(userId: number, booking: InsertBooking, seatIds: number[], snackItems?: { snackId: number, quantity: number }[]): Promise<Booking>;
+  createBooking(userId: number, booking: { showId: number; totalPrice: number }, seatIds: number[], snackItems?: { snackId: number, quantity: number }[]): Promise<Booking>;
   getBookings(userId: number): Promise<(Booking & { show: Show, movie: Movie })[]>;
   getBooking(id: number): Promise<(Booking & { show: Show, movie: Movie }) | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
-  sessionStore: session.Store;
-  db: typeof db;
+  public sessionStore: session.Store;
 
   constructor() {
-    this.sessionStore = new PostgresSessionStore({
-      pool,
-      createTableIfMissing: true,
+    // Initialize Memory session store for development
+    this.sessionStore = new MemoryStoreSession({
+      checkPeriod: 86400000, // 24 hours
     });
-    this.db = db;
+    
+    // Associations are already defined in models.ts, no need to duplicate here
   }
 
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    const user = await User.findByPk(id, { raw: true });
+    return user as User | undefined;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user;
+    const user = await User.findOne({ where: { email }, raw: true });
+    return user as User | undefined;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
-    return user;
+  async createUser(userData: Partial<User>): Promise<User> {
+    await User.create(userData as any);
+    
+    // Always fetch the user by email to ensure we get the proper ID
+    const fetchedUser = await User.findOne({ 
+      where: { email: userData.email },
+      raw: true // This returns a plain object instead of a Sequelize instance
+    });
+    
+    if (!fetchedUser) {
+      throw new Error('Failed to create user');
+    }
+    
+    return fetchedUser as User;
   }
 
   async getMovies(): Promise<Movie[]> {
-    return await db.select().from(movies);
+    return await Movie.findAll({ order: [['id', 'ASC']] });
   }
 
   async getMovie(id: number): Promise<Movie | undefined> {
-    const [movie] = await db.select().from(movies).where(eq(movies.id, id));
-    return movie;
+    const movie = await Movie.findByPk(id);
+    return movie || undefined;
   }
 
   async getTheatres(city?: string): Promise<Theatre[]> {
-    if (city) {
-      return await db.select().from(theatres).where(eq(theatres.city, city));
-    }
-    return await db.select().from(theatres);
+    const whereClause = city ? { city } : {};
+    return await Theatre.findAll({
+      where: whereClause,
+      order: [['id', 'ASC']]
+    });
   }
 
   async getShows(movieId: number, theatreId?: number): Promise<(Show & { theatre: Theatre })[]> {
-    let query = db
-      .select({
-        ...shows,
-        theatre: theatres,
-      })
-      .from(shows)
-      .innerJoin(theatres, eq(shows.theatreId, theatres.id))
-      .where(eq(shows.movieId, movieId));
-
+    const whereClause: any = { movieId };
     if (theatreId) {
-      query = query.where(eq(shows.theatreId, theatreId)) as any;
+      whereClause.theatreId = theatreId;
     }
 
-    const results = await query;
-    return results.map(r => ({ ...r.shows, theatre: r.theatre }));
+    const shows = await Show.findAll({
+      where: whereClause,
+      include: [{
+        model: Theatre,
+        as: 'theatre',
+        required: true
+      }],
+      order: [['showTime', 'ASC']]
+    });
+
+    return shows as (Show & { theatre: Theatre })[];
   }
 
   async getShow(id: number): Promise<Show | undefined> {
-    const [show] = await db.select().from(shows).where(eq(shows.id, id));
-    return show;
+    const show = await Show.findByPk(id);
+    return show || undefined;
   }
 
   async getSeats(showId: number): Promise<Seat[]> {
-    return await db.select().from(seats).where(eq(seats.showId, showId)).orderBy(seats.id);
+    return await Seat.findAll({
+      where: { showId },
+      order: [['id', 'ASC']]
+    });
   }
 
   async updateSeatStatus(id: number, status: string): Promise<Seat | undefined> {
-    const [seat] = await db.update(seats)
-      .set({ status })
-      .where(eq(seats.id, id))
-      .returning();
-    return seat;
+    const [affectedRows, updatedSeats] = await Seat.update(
+      { status },
+      { 
+        where: { id },
+        returning: true
+      }
+    );
+    return affectedRows > 0 ? updatedSeats[0] : undefined;
   }
 
   async updateSeatsStatus(ids: number[], status: string): Promise<void> {
     if (ids.length === 0) return;
-    await db.update(seats)
-      .set({ status })
-      .where(sql`${seats.id} IN ${ids}`);
+    await Seat.update(
+      { status },
+      { where: { id: ids } }
+    );
   }
 
   async getSnacks(): Promise<Snack[]> {
-    return await db.select().from(snacks);
+    return await Snack.findAll({ order: [['id', 'ASC']] });
   }
 
-  async createBooking(userId: number, booking: InsertBooking, seatIds: number[], snackItems: { snackId: number, quantity: number }[] = []): Promise<Booking> {
-    // Transaction to ensure atomicity
-    return await db.transaction(async (tx) => {
+  async createBooking(
+    userId: number, 
+    booking: { showId: number; totalPrice: number }, 
+    seatIds: number[], 
+    snackItems: { snackId: number, quantity: number }[] = []
+  ): Promise<Booking> {
+    const transaction = await sequelize.transaction();
+    
+    try {
       // 1. Create Booking
-      const [newBooking] = await tx.insert(bookings).values({
+      const newBooking = await Booking.create({
         ...booking,
         userId,
-        paymentStatus: 'completed', // Mock payment success
-      }).returning();
+        paymentStatus: 'completed' // Mock payment success
+      }, { transaction });
 
       // 2. Update Seats
       if (seatIds.length > 0) {
-        await tx.update(seats)
-          .set({ status: 'booked' })
-          .where(sql`${seats.id} IN ${seatIds}`);
+        await Seat.update(
+          { status: 'booked' },
+          { 
+            where: { id: seatIds },
+            transaction
+          }
+        );
       }
 
       // 3. Add Snacks
       if (snackItems.length > 0) {
-        await tx.insert(bookingSnacks).values(
+        await BookingSnack.bulkCreate(
           snackItems.map(item => ({
             bookingId: newBooking.id,
             snackId: item.snackId,
             quantity: item.quantity
-          }))
+          })),
+          { transaction }
         );
       }
 
+      await transaction.commit();
       return newBooking;
-    });
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   }
 
   async getBookings(userId: number): Promise<(Booking & { show: Show, movie: Movie })[]> {
-    const results = await db.select({
-      booking: bookings,
-      show: shows,
-      movie: movies
-    })
-    .from(bookings)
-    .innerJoin(shows, eq(bookings.showId, shows.id))
-    .innerJoin(movies, eq(shows.movieId, movies.id))
-    .where(eq(bookings.userId, userId))
-    .orderBy(sql`${bookings.createdAt} DESC`);
+    const bookings = await Booking.findAll({
+      where: { userId },
+      include: [
+        {
+          model: Show,
+          as: 'show',
+          include: [
+            {
+              model: Movie,
+              as: 'movie'
+            }
+          ]
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
 
-    return results.map(r => ({ ...r.booking, show: r.show, movie: r.movie }));
+    return bookings as (Booking & { show: Show, movie: Movie })[];
   }
 
   async getBooking(id: number): Promise<(Booking & { show: Show, movie: Movie }) | undefined> {
-    const [result] = await db.select({
-      booking: bookings,
-      show: shows,
-      movie: movies
-    })
-    .from(bookings)
-    .innerJoin(shows, eq(bookings.showId, shows.id))
-    .innerJoin(movies, eq(shows.movieId, movies.id))
-    .where(eq(bookings.id, id));
+    const booking = await Booking.findByPk(id, {
+      include: [
+        {
+          model: Show,
+          as: 'show',
+          include: [
+            {
+              model: Movie,
+              as: 'movie'
+            }
+          ]
+        }
+      ]
+    });
 
-    if (!result) return undefined;
-    return { ...result.booking, show: result.show, movie: result.movie };
+    return booking as (Booking & { show: Show, movie: Movie }) | undefined;
   }
 }
 

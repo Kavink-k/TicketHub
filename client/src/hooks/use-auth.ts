@@ -1,19 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, type InsertUser } from "@shared/routes";
-import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 
 // Types
-export type LoginInput = z.infer<typeof api.auth.login.input>;
+export type LoginInput = {
+  username: string;
+  password: string;
+};
 
 export function useAuth() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: user, isLoading, error } = useQuery({
+  const { data: user, isLoading } = useQuery({
     queryKey: [api.auth.me.path],
     queryFn: async () => {
-      const res = await fetch(api.auth.me.path);
+      const res = await fetch(api.auth.me.path, {
+        credentials: 'include', // Important for cookies/sessions
+      });
       if (res.status === 401) return null;
       if (!res.ok) throw new Error("Failed to fetch user");
       return api.auth.me.responses[200].parse(await res.json());
@@ -26,11 +30,13 @@ export function useAuth() {
       const res = await fetch(api.auth.login.path, {
         method: api.auth.login.method,
         headers: { "Content-Type": "application/json" },
+        credentials: 'include', // Important for cookies/sessions
         body: JSON.stringify(credentials),
       });
       
       if (!res.ok) {
         if (res.status === 401) throw new Error("Invalid credentials");
+        if (res.status === 500) throw new Error("Server error - please try again");
         throw new Error("Login failed");
       }
       
@@ -54,6 +60,7 @@ export function useAuth() {
       const res = await fetch(api.auth.signup.path, {
         method: api.auth.signup.method,
         headers: { "Content-Type": "application/json" },
+        credentials: 'include', // Important for cookies/sessions
         body: JSON.stringify(data),
       });
 
@@ -62,6 +69,7 @@ export function useAuth() {
           const error = await res.json();
           throw new Error(error.message || "Validation error");
         }
+        if (res.status === 500) throw new Error("Server error - please try again");
         throw new Error("Signup failed");
       }
       
@@ -81,7 +89,10 @@ export function useAuth() {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await fetch(api.auth.logout.path, { method: api.auth.logout.method });
+      await fetch(api.auth.logout.path, { 
+        method: api.auth.logout.method,
+        credentials: 'include', // Important for cookies/sessions
+      });
     },
     onSuccess: () => {
       queryClient.setQueryData([api.auth.me.path], null);

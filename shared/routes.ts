@@ -1,20 +1,22 @@
 
 import { z } from 'zod';
 import { 
-  insertUserSchema, 
-  insertBookingSchema,
-  insertBookingSnackSchema,
-  users,
-  movies,
-  theatres,
-  shows,
-  seats,
-  bookings,
-  snacks
+  insertUserSchema,
+  loginSchema,
+  createBookingSchema,
+  updateSeatStatusSchema,
+  theatreQuerySchema,
+  showQuerySchema,
+  type User,
+  type Movie,
+  type Theatre,
+  type Show,
+  type Seat,
+  type Booking,
+  type Snack
 } from './schema';
 
-export * from './schema'; // Re-export everything for frontend convenience
-
+// Error response schemas
 export const errorSchemas = {
   validation: z.object({
     message: z.string(),
@@ -31,6 +33,7 @@ export const errorSchemas = {
   }),
 };
 
+// API endpoint definitions with type-safe contracts
 export const api = {
   auth: {
     signup: {
@@ -38,19 +41,16 @@ export const api = {
       path: '/api/auth/signup',
       input: insertUserSchema,
       responses: {
-        201: z.custom<typeof users.$inferSelect>(),
+        201: z.custom<User>(),
         400: errorSchemas.validation,
       },
     },
     login: {
       method: 'POST' as const,
       path: '/api/auth/login',
-      input: z.object({
-        username: z.string(), // using email as username
-        password: z.string(),
-      }),
+      input: loginSchema,
       responses: {
-        200: z.custom<typeof users.$inferSelect>(),
+        200: z.custom<User>(),
         401: errorSchemas.unauthorized,
       },
     },
@@ -65,7 +65,7 @@ export const api = {
       method: 'GET' as const,
       path: '/api/user',
       responses: {
-        200: z.custom<typeof users.$inferSelect>(),
+        200: z.custom<User>(),
         401: errorSchemas.unauthorized,
       },
     },
@@ -75,14 +75,14 @@ export const api = {
       method: 'GET' as const,
       path: '/api/movies',
       responses: {
-        200: z.array(z.custom<typeof movies.$inferSelect>()),
+        200: z.array(z.custom<Movie>()),
       },
     },
     get: {
       method: 'GET' as const,
       path: '/api/movies/:id',
       responses: {
-        200: z.custom<typeof movies.$inferSelect>(),
+        200: z.custom<Movie>(),
         404: errorSchemas.notFound,
       },
     },
@@ -91,9 +91,9 @@ export const api = {
     list: {
       method: 'GET' as const,
       path: '/api/theatres',
-      input: z.object({ city: z.string().optional() }).optional(),
+      input: theatreQuerySchema.optional(),
       responses: {
-        200: z.array(z.custom<typeof theatres.$inferSelect>()),
+        200: z.array(z.custom<Theatre>()),
       },
     },
   },
@@ -101,16 +101,16 @@ export const api = {
     list: {
       method: 'GET' as const,
       path: '/api/shows',
-      input: z.object({ movieId: z.string(), theatreId: z.string().optional() }).optional(), // query params are strings
+      input: showQuerySchema.optional(),
       responses: {
-        200: z.array(z.custom<typeof shows.$inferSelect & { theatre: typeof theatres.$inferSelect }>()),
+        200: z.array(z.custom<Show & { theatre: Theatre }>()),
       },
     },
     get: {
       method: 'GET' as const,
       path: '/api/shows/:id',
       responses: {
-        200: z.custom<typeof shows.$inferSelect>(),
+        200: z.custom<Show>(),
         404: errorSchemas.notFound,
       },
     },
@@ -118,7 +118,7 @@ export const api = {
       method: 'GET' as const,
       path: '/api/shows/:id/seats',
       responses: {
-        200: z.array(z.custom<typeof seats.$inferSelect>()),
+        200: z.array(z.custom<Seat>()),
       },
     },
   },
@@ -126,9 +126,10 @@ export const api = {
     updateStatus: {
       method: 'PATCH' as const,
       path: '/api/seats/:id/status',
-      input: z.object({ status: z.enum(['available', 'booked', 'selected']) }),
+      input: updateSeatStatusSchema,
       responses: {
-        200: z.custom<typeof seats.$inferSelect>(),
+        200: z.custom<Seat>(),
+        400: errorSchemas.validation,
       },
     },
   },
@@ -136,28 +137,24 @@ export const api = {
     create: {
       method: 'POST' as const,
       path: '/api/bookings',
-      input: z.object({
-        showId: z.number(),
-        seatIds: z.array(z.number()),
-        snacks: z.array(z.object({ snackId: z.number(), quantity: z.number() })).optional(),
-      }),
+      input: createBookingSchema,
       responses: {
-        201: z.custom<typeof bookings.$inferSelect>(),
+        201: z.custom<Booking>(),
         400: errorSchemas.validation,
       },
     },
     list: {
       method: 'GET' as const,
-      path: '/api/bookings', // user specific
+      path: '/api/bookings',
       responses: {
-        200: z.array(z.custom<typeof bookings.$inferSelect & { show: typeof shows.$inferSelect, movie: typeof movies.$inferSelect }>()),
+        200: z.array(z.custom<Booking & { show: Show & { movie: Movie, theatre: Theatre } }>()),
       },
     },
     get: {
       method: 'GET' as const,
       path: '/api/bookings/:id',
       responses: {
-        200: z.custom<typeof bookings.$inferSelect & { show: typeof shows.$inferSelect, movie: typeof movies.$inferSelect }>(),
+        200: z.custom<Booking & { show: Show & { movie: Movie, theatre: Theatre } }>(),
         404: errorSchemas.notFound,
       },
     },
@@ -167,12 +164,13 @@ export const api = {
       method: 'GET' as const,
       path: '/api/snacks',
       responses: {
-        200: z.array(z.custom<typeof snacks.$inferSelect>()),
+        200: z.array(z.custom<Snack>()),
       },
     },
   },
 };
 
+// Utility function to build URLs with parameters
 export function buildUrl(path: string, params?: Record<string, string | number>): string {
   let url = path;
   if (params) {
@@ -184,3 +182,11 @@ export function buildUrl(path: string, params?: Record<string, string | number>)
   }
   return url;
 }
+
+// Type helpers for API usage
+export type ApiEndpoint = typeof api[keyof typeof api][keyof typeof api[keyof typeof api]];
+export type ApiMethod = ApiEndpoint['method'];
+export type ApiPath = ApiEndpoint['path'];
+
+// Re-export everything from schema for convenience
+export * from './schema';

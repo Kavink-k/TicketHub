@@ -1,15 +1,34 @@
+import { sequelize, User, Movie, Theatre, Show, Seat, Booking, Snack, BookingSnack } from './models';
 
-import { drizzle } from "drizzle-orm/node-postgres";
-import pg from "pg";
-import * as schema from "@shared/schema";
+// Initialize models and associations
+export const initDatabase = async () => {
+  try {
+    // Test connection
+    await sequelize.authenticate();
+    console.log('MySQL connection established successfully.');
 
-const { Pool } = pg;
+    // Sync all models (create tables)
+    await sequelize.sync({ 
+      alter: process.env.NODE_ENV === 'development' // Auto-alter tables in development
+    });
+    
+    console.log('Database synchronized successfully.');
+  } catch (error) {
+    console.warn('Unable to connect to MySQL, running without database:', error);
+    // Don't throw error - allow server to start without database for development
+    console.log('Server will start without database connectivity.');
+  }
+};
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
-  );
-}
-
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle(pool, { schema });
+// Export sequelize and models
+export {
+  sequelize,
+  User,
+  Movie,
+  Theatre,
+  Show,
+  Seat,
+  Booking,
+  Snack,
+  BookingSnack,
+};

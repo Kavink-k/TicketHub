@@ -5,10 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ChevronRight } from "lucide-react";
-import heroImage from "@assets/hero-placeholder.jpg"; // Placeholder, handled in vite
+import { Link } from "wouter";
+// import heroImage from "@assets/hero-placeholder.jpg"; // Placeholder, handled in vite
 
 export default function HomePage() {
   const { data: movies, isLoading } = useMovies();
+
+  const scrollToMovies = () => {
+    document.getElementById('movies-section')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -24,7 +29,11 @@ export default function HomePage() {
             <p className="text-lg text-slate-300 max-w-lg">
               Experience the magic of cinema with the best seats in the house. Pre-book your snacks and skip the lines.
             </p>
-            <Button size="lg" className="bg-primary hover:bg-primary/90 text-white border-0 shadow-lg shadow-primary/30">
+            <Button 
+              size="lg" 
+              className="bg-primary hover:bg-primary/90 text-white border-0 shadow-lg shadow-primary/30"
+              onClick={scrollToMovies}
+            >
               Browse Movies
             </Button>
           </div>
@@ -41,7 +50,7 @@ export default function HomePage() {
       </div>
 
       {/* Recommended Movies Section */}
-      <div className="container mx-auto px-4 md:px-8 py-12">
+      <div id="movies-section" className="container mx-auto px-4 md:px-8 py-12">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl font-display font-bold text-foreground">Recommended Movies</h2>
           <Button variant="ghost" className="text-primary hover:text-primary/80 gap-1 pr-0 hover:bg-transparent">
@@ -59,11 +68,16 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-        ) : (
+        ) : movies && movies.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 md:gap-8">
-            {movies?.map((movie) => (
+            {movies.map((movie) => (
               <MovieCard key={movie.id} movie={movie} />
             ))}
+          </div>
+        ) : (
+          <div className="text-center py-20 bg-secondary/30 rounded-2xl border border-dashed">
+            <p className="text-muted-foreground text-lg">No movies available at the moment.</p>
+            <p className="text-sm text-muted-foreground mt-2">Check back later for new releases!</p>
           </div>
         )}
       </div>

@@ -1,9 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, buildUrl } from "@shared/routes";
 import { useToast } from "@/hooks/use-toast";
-import { z } from "zod";
 
-type CreateBookingInput = z.infer<typeof api.bookings.create.input>;
+type CreateBookingInput = {
+  showId: number;
+  seatIds: number[];
+  snacks?: { snackId: number; quantity: number; }[];
+};
 
 export function useCreateBooking() {
   const queryClient = useQueryClient();

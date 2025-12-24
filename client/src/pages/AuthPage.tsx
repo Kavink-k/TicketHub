@@ -3,7 +3,7 @@ import { useAuth, type LoginInput } from "@/hooks/use-auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { api, type InsertUser, insertUserSchema } from "@shared/routes";
+import { type InsertUser } from "@shared/routes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,9 +34,7 @@ export default function AuthPage() {
   });
 
   // Signup Form
-  const signupForm = useForm<InsertUser>({
-    resolver: zodResolver(insertUserSchema),
-  });
+  const signupForm = useForm<InsertUser>();
 
   const onLogin = (data: LoginInput) => {
     login(data, { onSuccess: () => setLocation("/") });
@@ -57,9 +55,9 @@ export default function AuthPage() {
       <Card className="w-full max-w-md shadow-xl border-border/50">
         <CardHeader className="text-center pb-2">
           <div className="mx-auto bg-primary w-12 h-12 rounded-full flex items-center justify-center mb-4">
-            <span className="text-white font-bold text-xl">TS</span>
+            <span className="text-white font-bold text-xl">TH</span>
           </div>
-          <CardTitle className="text-2xl font-display">Welcome to TicketShow</CardTitle>
+          <CardTitle className="text-2xl font-display">Welcome to TicketHub</CardTitle>
           <CardDescription>Your gateway to entertainment</CardDescription>
         </CardHeader>
         <CardContent>

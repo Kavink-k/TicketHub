@@ -5,11 +5,10 @@ import { useCreateBooking } from "@/hooks/use-bookings";
 import { Navbar } from "@/components/Navbar";
 import { SeatLayout } from "@/components/SeatLayout";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter } from "@/components/ui/sheet";
 import { format } from "date-fns";
 import { useState, useMemo } from "react";
-import { ArrowLeft, Plus, Minus, CreditCard, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, Minus, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 

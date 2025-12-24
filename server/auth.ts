@@ -6,7 +6,8 @@ import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
-import { User } from "@shared/schema";
+import { User } from "./models";
+import { insertUserSchema, loginSchema } from "@shared/routes";
 
 const scryptAsync = promisify(scrypt);
 
@@ -17,7 +18,13 @@ async function hashPassword(password: string) {
 }
 
 async function comparePasswords(supplied: string, stored: string) {
+  if (!stored) {
+    return false;
+  }
   const [hashed, salt] = stored.split(".");
+  if (!hashed || !salt) {
+    return false;
+  }
   const hashedBuf = Buffer.from(hashed, "hex");
   const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
   return timingSafeEqual(hashedBuf, suppliedBuf);
@@ -51,22 +58,46 @@ export function setupAuth(app: Express) {
     }),
   );
 
-  passport.serializeUser((user, done) => done(null, (user as User).id));
+  passport.serializeUser((user, done) => {
+    try {
+      // Handle both Sequelize model instances and plain objects
+      const userId = user && typeof user === 'object' ? (user as any).id : null;
+      if (!userId) {
+        return done(new Error('User ID not found'), null);
+      }
+      done(null, userId);
+    } catch (error) {
+      done(error, null);
+    }
+  });
   passport.deserializeUser(async (id, done) => {
-    const user = await storage.getUser(id as number);
-    done(null, user);
+    try {
+      const user = await storage.getUser(id as number);
+      done(null, user);
+    } catch (error) {
+      done(error, null);
+    }
   });
 
   app.post("/api/auth/signup", async (req, res, next) => {
     try {
-      const existingUser = await storage.getUserByEmail(req.body.email);
-      if (existingUser) {
-        return res.status(400).send("Email already in use");
+      const validationResult = insertUserSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: "Invalid input", 
+          field: validationResult.error.issues[0]?.path[0]
+        });
       }
 
-      const hashedPassword = await hashPassword(req.body.password);
+      const userData = validationResult.data;
+      const existingUser = await storage.getUserByEmail(userData.email);
+      if (existingUser) {
+        return res.status(400).json({ message: "Email already in use" });
+      }
+
+      const hashedPassword = await hashPassword(userData.password);
       const user = await storage.createUser({
-        ...req.body,
+        ...userData,
         password: hashedPassword,
       });
 
@@ -79,8 +110,24 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.post("/api/auth/login", passport.authenticate("local"), (req, res) => {
-    res.status(200).json(req.user);
+  app.post("/api/auth/login", (req, res, next) => {
+    const validationResult = loginSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      return res.status(400).json({ 
+        message: "Invalid input", 
+        field: validationResult.error.issues[0]?.path[0] 
+      });
+    }
+
+    passport.authenticate("local", (err: any, user: any, info: any) => {
+      if (err) return next(err);
+      if (!user) return res.status(401).json({ message: "Invalid credentials" });
+      
+      req.login(user, (err) => {
+        if (err) return next(err);
+        res.status(200).json(user);
+      });
+    })(req, res, next);
   });
 
   app.post("/api/auth/logout", (req, res, next) => {

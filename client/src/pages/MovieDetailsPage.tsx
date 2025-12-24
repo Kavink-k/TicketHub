@@ -4,20 +4,15 @@ import { useShows } from "@/hooks/use-shows";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Star, PlayCircle } from "lucide-react";
+import { Clock, Star, PlayCircle } from "lucide-react";
 import { format } from "date-fns";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
 
 export default function MovieDetailsPage() {
   const [, params] = useRoute("/movies/:id");
   const movieId = parseInt(params?.id || "0");
   const { data: movie, isLoading: isMovieLoading } = useMovie(movieId);
   const { data: shows, isLoading: isShowsLoading } = useShows(movieId);
-
-  const [selectedDate, setSelectedDate] = useState(new Date());
 
   if (isMovieLoading) {
     return (
@@ -45,7 +40,7 @@ export default function MovieDetailsPage() {
     }
     acc[theatreId].shows.push(show);
     return acc;
-  }, {} as Record<number, { theatre: typeof shows[0]['theatre'], shows: typeof shows }>);
+  }, {} as Record<number, { theatre: any, shows: any[] }>);
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -88,19 +83,40 @@ export default function MovieDetailsPage() {
             </p>
 
             <div className="flex flex-wrap gap-4 pt-4">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-white px-8 h-12 text-lg shadow-lg shadow-primary/25">
-                Book Tickets
-              </Button>
-              <Button size="lg" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20 h-12 gap-2">
-                <PlayCircle className="w-5 h-5" /> Watch Trailer
-              </Button>
+              {shows && shows.length > 0 ? (
+                <Button 
+                  size="lg" 
+                  className="bg-primary hover:bg-primary/90 text-white px-8 h-12 text-lg shadow-lg shadow-primary/25"
+                  onClick={() => document.getElementById('showtimes-section')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  Book Tickets
+                </Button>
+              ) : (
+                <Button 
+                  size="lg" 
+                  className="bg-primary hover:bg-primary/90 text-white px-8 h-12 text-lg shadow-lg shadow-primary/25"
+                  disabled
+                >
+                  No Shows Available
+                </Button>
+              )}
+              {movie.trailerUrl && (
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="bg-white/10 border-white/20 text-white hover:bg-white/20 h-12 gap-2"
+                  onClick={() => window.open(movie.trailerUrl, '_blank')}
+                >
+                  <PlayCircle className="w-5 h-5" /> Watch Trailer
+                </Button>
+              )}
             </div>
           </div>
         </div>
       </div>
 
       {/* Shows Section */}
-      <div className="container mx-auto px-4 md:px-8 py-12">
+      <div id="showtimes-section" className="container mx-auto px-4 md:px-8 py-12">
         <div className="flex flex-col md:flex-row gap-12">
           <div className="flex-1 space-y-8">
             <div className="flex items-center justify-between border-b pb-4">
@@ -123,7 +139,9 @@ export default function MovieDetailsPage() {
               </div>
             ) : (
               <div className="space-y-6">
-                {Object.values(showsByTheatre || {}).map(({ theatre, shows }) => (
+                {Object.values(showsByTheatre || {}).map((item: any) => {
+                  const { theatre, shows } = item;
+                  return (
                   <div key={theatre.id} className="bg-card border rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                       <div>
@@ -139,7 +157,7 @@ export default function MovieDetailsPage() {
                     </div>
 
                     <div className="flex flex-wrap gap-3">
-                      {shows.map((show) => (
+                      {shows.map((show: any) => (
                         <Link key={show.id} href={`/shows/${show.id}/seats`}>
                           <div className="group cursor-pointer flex flex-col items-center border border-border rounded-lg p-2 min-w-[100px] hover:border-primary hover:bg-primary/5 transition-all">
                             <span className="text-sm font-semibold text-green-600 group-hover:text-primary">
@@ -153,7 +171,7 @@ export default function MovieDetailsPage() {
                       ))}
                     </div>
                   </div>
-                ))}
+                )})}
               </div>
             )}
           </div>

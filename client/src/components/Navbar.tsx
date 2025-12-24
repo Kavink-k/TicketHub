@@ -1,4 +1,4 @@
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Search, User, LogOut, Ticket, MapPin, ChevronDown } from "lucide-react";
@@ -17,7 +17,6 @@ const CITIES = ["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata
 
 export function Navbar() {
   const { user, logout } = useAuth();
-  const [location] = useLocation();
   const [selectedCity, setSelectedCity] = useState("Mumbai");
 
   return (
@@ -29,7 +28,7 @@ export function Navbar() {
             <Ticket className="w-6 h-6" />
           </div>
           <span className="font-display font-bold text-2xl tracking-tight hidden sm:block">
-            TicketShow
+            TicketHub
           </span>
         </Link>
 
