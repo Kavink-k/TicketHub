@@ -29,14 +29,14 @@ export default function MyBookingsPage() {
                 <div className="flex h-32">
                   <div className="w-24 shrink-0 bg-muted">
                     <img 
-                      src={booking.movie.posterUrl} 
+                      src={booking.show.movie.posterUrl} 
                       className="w-full h-full object-cover" 
                       alt="poster" 
                     />
                   </div>
                   <div className="p-4 flex flex-col justify-between flex-1">
                     <div>
-                      <h3 className="font-bold line-clamp-1">{booking.movie.title}</h3>
+                      <h3 className="font-bold line-clamp-1">{booking.show.movie.title}</h3>
                       <p className="text-sm text-muted-foreground mt-1">
                         {format(new Date(booking.show.showTime), "EEE, d MMM • h:mm a")}
                       </p>
@@ -57,3 +57,4 @@ export default function MyBookingsPage() {
     </div>
   );
 }
+
