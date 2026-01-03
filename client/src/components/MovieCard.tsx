@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { type Movie } from "@shared/schema";
+import { type Movie } from "@/shared/schema";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 

@@ -1,4 +1,4 @@
-import { type Seat } from "@shared/schema";
+import { type Seat } from "@/shared/schema";
 import { cn } from "@/lib/utils";
 import { useState, useCallback } from "react";
 

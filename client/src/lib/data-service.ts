@@ -1,4 +1,4 @@
-import type { Movie, Theatre, Show, Seat, Booking, Snack } from "@shared/schema";
+import type { Movie, Theatre, Show, Seat, Booking, Snack } from "@/shared/schema";
 
 // Static data imports
 import moviesData from "../../public/data/movies.json";
