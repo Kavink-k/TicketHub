@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, type InsertUser } from "@shared/routes";
+import { loginUser, signupUser, getCurrentUser, logoutUser, isAuthenticated } from "@/lib/data-service";
 import { useToast } from "@/hooks/use-toast";
 
 // Types
@@ -13,38 +13,25 @@ export function useAuth() {
   const { toast } = useToast();
 
   const { data: user, isLoading } = useQuery({
-    queryKey: [api.auth.me.path],
-    queryFn: async () => {
-      const res = await fetch(api.auth.me.path, {
-        credentials: 'include', // Important for cookies/sessions
-      });
-      if (res.status === 401) return null;
-      if (!res.ok) throw new Error("Failed to fetch user");
-      return api.auth.me.responses[200].parse(await res.json());
+    queryKey: ["currentUser"],
+    queryFn: () => {
+      if (!isAuthenticated()) return null;
+      return getCurrentUser();
     },
     retry: false,
   });
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginInput) => {
-      const res = await fetch(api.auth.login.path, {
-        method: api.auth.login.method,
-        headers: { "Content-Type": "application/json" },
-        credentials: 'include', // Important for cookies/sessions
-        body: JSON.stringify(credentials),
-      });
-      
-      if (!res.ok) {
-        if (res.status === 401) throw new Error("Invalid credentials");
-        if (res.status === 500) throw new Error("Server error - please try again");
-        throw new Error("Login failed");
+      const result = loginUser(credentials.username, credentials.password);
+      if (!result) {
+        throw new Error("Invalid credentials");
       }
-      
-      return api.auth.login.responses[200].parse(await res.json());
+      return result;
     },
     onSuccess: (data) => {
-      queryClient.setQueryData([api.auth.me.path], data);
-      toast({ title: "Welcome back!", description: `Logged in as ${data.name}` });
+      queryClient.setQueryData(["currentUser"], data.user);
+      toast({ title: "Welcome back!", description: `Logged in as ${data.user.name}` });
     },
     onError: (error: Error) => {
       toast({ 
@@ -56,24 +43,12 @@ export function useAuth() {
   });
 
   const signupMutation = useMutation({
-    mutationFn: async (data: InsertUser) => {
-      const res = await fetch(api.auth.signup.path, {
-        method: api.auth.signup.method,
-        headers: { "Content-Type": "application/json" },
-        credentials: 'include', // Important for cookies/sessions
-        body: JSON.stringify(data),
-      });
-
-      if (!res.ok) {
-        if (res.status === 400) {
-          const error = await res.json();
-          throw new Error(error.message || "Validation error");
-        }
-        if (res.status === 500) throw new Error("Server error - please try again");
-        throw new Error("Signup failed");
+    mutationFn: async (data: { email: string; password: string; name: string }) => {
+      const result = signupUser(data);
+      if (!result) {
+        throw new Error("Email already exists");
       }
-      
-      return api.auth.signup.responses[201].parse(await res.json());
+      return result;
     },
     onSuccess: () => {
       toast({ title: "Account Created", description: "Please login to continue." });
@@ -89,13 +64,10 @@ export function useAuth() {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await fetch(api.auth.logout.path, { 
-        method: api.auth.logout.method,
-        credentials: 'include', // Important for cookies/sessions
-      });
+      logoutUser();
     },
     onSuccess: () => {
-      queryClient.setQueryData([api.auth.me.path], null);
+      queryClient.setQueryData(["currentUser"], null);
       toast({ title: "Logged out", description: "See you next time!" });
     },
   });

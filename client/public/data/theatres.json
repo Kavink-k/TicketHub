@@ -1,0 +1,45 @@
+[
+  {
+    "id": 1,
+    "name": "Cineplex Downtown",
+    "city": "New York",
+    "location": "123 Main Street",
+    "totalScreens": 8
+  },
+  {
+    "id": 2,
+    "name": "Starlight Cinema",
+    "city": "New York",
+    "location": "456 Broadway",
+    "totalScreens": 6
+  },
+  {
+    "id": 3,
+    "name": "Galaxy Theater",
+    "city": "Los Angeles",
+    "location": "789 Hollywood Blvd",
+    "totalScreens": 10
+  },
+  {
+    "id": 4,
+    "name": "Regal Movies",
+    "city": "Los Angeles",
+    "location": "321 Sunset Strip",
+    "totalScreens": 5
+  },
+  {
+    "id": 5,
+    "name": "City Center Multiplex",
+    "city": "Chicago",
+    "location": "555 Michigan Ave",
+    "totalScreens": 12
+  },
+  {
+    "id": 6,
+    "name": "Grand Stage Cinema",
+    "city": "Chicago",
+    "location": "888 State Street",
+    "totalScreens": 4
+  }
+]
+

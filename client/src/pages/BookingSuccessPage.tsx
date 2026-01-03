@@ -38,12 +38,12 @@ export default function BookingSuccessPage() {
           {/* Movie Poster Header */}
           <div className="h-32 bg-slate-900 relative overflow-hidden">
              <img 
-               src={booking.movie.posterUrl} 
+               src={booking.show.movie.posterUrl} 
                className="w-full h-full object-cover opacity-50 blur-sm"
                alt="poster"
              />
              <div className="absolute inset-0 flex items-center px-6">
-               <h2 className="text-xl font-bold text-white drop-shadow-md">{booking.movie.title}</h2>
+               <h2 className="text-xl font-bold text-white drop-shadow-md">{booking.show.movie.title}</h2>
              </div>
           </div>
 

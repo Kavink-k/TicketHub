@@ -5,7 +5,7 @@ import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Star, PlayCircle } from "lucide-react";
+import { Clock, Star, PlayCircle,ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 
 export default function MovieDetailsPage() {
@@ -52,7 +52,13 @@ export default function MovieDetailsPage() {
           className="absolute inset-0 bg-cover bg-center blur-2xl opacity-50 scale-110"
           style={{ backgroundImage: `url(${movie.posterUrl})` }}
         />
+
         <div className="absolute inset-0 bg-black/60" /> {/* Dark overlay */}
+        <Link href="/" className="absolute top-6 left-6 z-20">
+          <Button variant="ghost" className="bg-black/30 text-white hover:bg-black/50 p-2 rounded-full">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+        </Link>
         
         <div className="container mx-auto px-4 md:px-8 h-full relative z-10 flex items-center gap-8 md:gap-12">
           {/* Poster */}

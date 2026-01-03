@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, buildUrl } from "@shared/routes";
+import { createBooking, getUserBookings, getBookingById, getCurrentUser } from "@/lib/data-service";
 import { useToast } from "@/hooks/use-toast";
 
 type CreateBookingInput = {
@@ -14,24 +14,29 @@ export function useCreateBooking() {
 
   return useMutation({
     mutationFn: async (data: CreateBookingInput) => {
-      const res = await fetch(api.bookings.create.path, {
-        method: api.bookings.create.method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      
-      if (!res.ok) {
-        if (res.status === 400) {
-          const error = await res.json();
-          throw new Error(error.message || "Validation failed");
-        }
-        throw new Error("Failed to create booking");
+      const user = getCurrentUser();
+      if (!user) {
+        throw new Error("You must be logged in to create a booking");
       }
       
-      return api.bookings.create.responses[201].parse(await res.json());
+      const snacksWithPrices = data.snacks?.map(s => ({
+        ...s,
+        price: s.quantity * 12 // Simplified price calculation
+      })) || [];
+      
+      const totalPrice = snacksWithPrices.reduce((sum, s) => sum + s.price, 0) + 
+        data.seatIds.length * 12; // Simplified seat price
+      
+      return createBooking({
+        userId: user.id,
+        showId: data.showId,
+        seatIds: data.seatIds,
+        snacks: data.snacks,
+        totalPrice,
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [api.bookings.list.path] });
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
     },
     onError: (error: Error) => {
       toast({ 
@@ -45,24 +50,20 @@ export function useCreateBooking() {
 
 export function useMyBookings() {
   return useQuery({
-    queryKey: [api.bookings.list.path],
-    queryFn: async () => {
-      const res = await fetch(api.bookings.list.path);
-      if (!res.ok) throw new Error("Failed to fetch bookings");
-      return api.bookings.list.responses[200].parse(await res.json());
+    queryKey: ["bookings"],
+    queryFn: () => {
+      const user = getCurrentUser();
+      if (!user) return [];
+      return getUserBookings(user.id);
     },
   });
 }
 
 export function useBooking(id: number) {
   return useQuery({
-    queryKey: [api.bookings.get.path, id],
-    queryFn: async () => {
-      const url = buildUrl(api.bookings.get.path, { id });
-      const res = await fetch(url);
-      if (res.status === 404) return null;
-      if (!res.ok) throw new Error("Failed to fetch booking");
-      return api.bookings.get.responses[200].parse(await res.json());
+    queryKey: ["booking", id],
+    queryFn: () => {
+      return getBookingById(id);
     },
     enabled: !!id,
   });

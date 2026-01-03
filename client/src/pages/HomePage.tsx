@@ -53,9 +53,11 @@ export default function HomePage() {
       <div id="movies-section" className="container mx-auto px-4 md:px-8 py-12">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl font-display font-bold text-foreground">Recommended Movies</h2>
+          <Link href="/my-bookings">
           <Button variant="ghost" className="text-primary hover:text-primary/80 gap-1 pr-0 hover:bg-transparent">
             See All <ChevronRight className="w-4 h-4" />
           </Button>
+          </Link>
         </div>
 
         {isLoading ? (

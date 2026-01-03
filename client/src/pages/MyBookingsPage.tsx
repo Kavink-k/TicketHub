@@ -1,17 +1,30 @@
 import { useMyBookings } from "@/hooks/use-bookings";
 import { Navbar } from "@/components/Navbar";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "wouter";
 
 export default function MyBookingsPage() {
   const { data: bookings, isLoading } = useMyBookings();
 
   return (
     <div className="min-h-screen bg-background">
+        <Link href="/">
+  <Button
+    variant="default"
+    className="fixed top-4 left-4 z-50 flex items-center gap-2"
+  >
+    Back
+  </Button>
+</Link>
+
       <Navbar />
       
+    
       <div className="container mx-auto px-4 py-12">
+        
         <h1 className="text-3xl font-display font-bold mb-8">My Bookings</h1>
 
         {isLoading ? (

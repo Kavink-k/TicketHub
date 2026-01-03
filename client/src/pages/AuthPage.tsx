@@ -3,13 +3,21 @@ import { useAuth, type LoginInput } from "@/hooks/use-auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { type InsertUser } from "@shared/routes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
+
+// Local type definition for signup
+type InsertUser = {
+  email: string;
+  password: string;
+  name: string;
+  phone?: string;
+  city?: string;
+};
 
 // Create schemas from Zod directly for form validation
 const loginSchema = z.object({

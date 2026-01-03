@@ -8,8 +8,8 @@ export type User = {
   name: string;
   phone?: string;
   city?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 };
 
 export type Movie = {
@@ -21,9 +21,9 @@ export type Movie = {
   description: string;
   posterUrl: string;
   trailerUrl?: string;
-  releaseDate?: Date;
-  createdAt: Date;
-  updatedAt: Date;
+  releaseDate?: Date | string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 };
 
 export type Theatre = {
@@ -32,19 +32,19 @@ export type Theatre = {
   city: string;
   location: string;
   totalScreens: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 };
 
 export type Show = {
   id: number;
   movieId: number;
   theatreId: number;
-  showTime: Date;
+  showTime: Date | string;
   format: string;
   availableSeats: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 };
 
 export type Seat = {
@@ -54,8 +54,8 @@ export type Seat = {
   category: string;
   price: number;
   status: 'available' | 'booked' | 'selected';
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 };
 
 export type Booking = {
@@ -64,8 +64,8 @@ export type Booking = {
   showId: number;
   totalPrice: number;
   paymentStatus: 'pending' | 'completed' | 'failed';
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 };
 
 export type Snack = {
@@ -73,8 +73,8 @@ export type Snack = {
   name: string;
   price: number;
   imageUrl?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 };
 
 export type BookingSnack = {
@@ -82,8 +82,8 @@ export type BookingSnack = {
   bookingId: number;
   snackId: number;
   quantity: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 };
 
 // Zod schemas for validation

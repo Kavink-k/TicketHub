@@ -1,0 +1,187 @@
+[
+  {
+    "id": 1,
+    "movieId": 1,
+    "theatreId": 1,
+    "showTime": "2024-01-15T10:00:00",
+    "format": "2D",
+    "availableSeats": 50
+  },
+  {
+    "id": 2,
+    "movieId": 1,
+    "theatreId": 1,
+    "showTime": "2024-01-15T14:00:00",
+    "format": "IMAX",
+    "availableSeats": 30
+  },
+  {
+    "id": 3,
+    "movieId": 1,
+    "theatreId": 1,
+    "showTime": "2024-01-15T19:00:00",
+    "format": "3D",
+    "availableSeats": 40
+  },
+  {
+    "id": 4,
+    "movieId": 1,
+    "theatreId": 2,
+    "showTime": "2024-01-15T12:00:00",
+    "format": "2D",
+    "availableSeats": 45
+  },
+  {
+    "id": 5,
+    "movieId": 1,
+    "theatreId": 2,
+    "showTime": "2024-01-15T17:00:00",
+    "format": "IMAX",
+    "availableSeats": 25
+  },
+  {
+    "id": 6,
+    "movieId": 2,
+    "theatreId": 1,
+    "showTime": "2024-01-15T11:00:00",
+    "format": "2D",
+    "availableSeats": 50
+  },
+  {
+    "id": 7,
+    "movieId": 2,
+    "theatreId": 1,
+    "showTime": "2024-01-15T16:00:00",
+    "format": "IMAX",
+    "availableSeats": 30
+  },
+  {
+    "id": 8,
+    "movieId": 2,
+    "theatreId": 3,
+    "showTime": "2024-01-15T13:00:00",
+    "format": "3D",
+    "availableSeats": 40
+  },
+  {
+    "id": 9,
+    "movieId": 3,
+    "theatreId": 1,
+    "showTime": "2024-01-15T09:00:00",
+    "format": "IMAX",
+    "availableSeats": 30
+  },
+  {
+    "id": 10,
+    "movieId": 3,
+    "theatreId": 2,
+    "showTime": "2024-01-15T15:00:00",
+    "format": "2D",
+    "availableSeats": 50
+  },
+  {
+    "id": 11,
+    "movieId": 3,
+    "theatreId": 3,
+    "showTime": "2024-01-15T20:00:00",
+    "format": "IMAX",
+    "availableSeats": 30
+  },
+  {
+    "id": 12,
+    "movieId": 4,
+    "theatreId": 2,
+    "showTime": "2024-01-15T11:00:00",
+    "format": "2D",
+    "availableSeats": 45
+  },
+  {
+    "id": 13,
+    "movieId": 4,
+    "theatreId": 4,
+    "showTime": "2024-01-15T18:00:00",
+    "format": "2D",
+    "availableSeats": 40
+  },
+  {
+    "id": 14,
+    "movieId": 5,
+    "theatreId": 1,
+    "showTime": "2024-01-15T12:00:00",
+    "format": "3D",
+    "availableSeats": 40
+  },
+  {
+    "id": 15,
+    "movieId": 5,
+    "theatreId": 2,
+    "showTime": "2024-01-15T19:00:00",
+    "format": "IMAX",
+    "availableSeats": 30
+  },
+  {
+    "id": 16,
+    "movieId": 6,
+    "theatreId": 3,
+    "showTime": "2024-01-15T10:00:00",
+    "format": "IMAX",
+    "availableSeats": 30
+  },
+  {
+    "id": 17,
+    "movieId": 6,
+    "theatreId": 3,
+    "showTime": "2024-01-15T15:00:00",
+    "format": "3D",
+    "availableSeats": 40
+  },
+  {
+    "id": 18,
+    "movieId": 6,
+    "theatreId": 5,
+    "showTime": "2024-01-15T20:00:00",
+    "format": "IMAX",
+    "availableSeats": 30
+  },
+  {
+    "id": 19,
+    "movieId": 7,
+    "theatreId": 4,
+    "showTime": "2024-01-15T14:00:00",
+    "format": "2D",
+    "availableSeats": 50
+  },
+  {
+    "id": 20,
+    "movieId": 7,
+    "theatreId": 5,
+    "showTime": "2024-01-15T19:00:00",
+    "format": "2D",
+    "availableSeats": 45
+  },
+  {
+    "id": 21,
+    "movieId": 8,
+    "theatreId": 6,
+    "showTime": "2024-01-15T10:00:00",
+    "format": "2D",
+    "availableSeats": 60
+  },
+  {
+    "id": 22,
+    "movieId": 8,
+    "theatreId": 6,
+    "showTime": "2024-01-15T14:00:00",
+    "format": "2D",
+    "availableSeats": 60
+  },
+  {
+    "id": 23,
+    "movieId": 8,
+    "theatreId": 6,
+    "showTime": "2024-01-15T17:00:00",
+    "format": "2D",
+    "availableSeats": 60
+  }
+]
+

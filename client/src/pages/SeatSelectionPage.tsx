@@ -38,6 +38,23 @@ export default function SeatSelectionPage() {
     }, 0);
   }, [selectedSeatIds, seats]);
 
+  // Calculate price breakdown by category
+  const seatBreakdown = useMemo(() => {
+    if (!seats) return {};
+    const breakdown: Record<string, { count: number; total: number }> = {};
+    selectedSeatIds.forEach(id => {
+      const seat = seats.find(s => s.id === id);
+      if (seat) {
+        if (!breakdown[seat.category]) {
+          breakdown[seat.category] = { count: 0, total: 0 };
+        }
+        breakdown[seat.category].count += 1;
+        breakdown[seat.category].total += seat.price;
+      }
+    });
+    return breakdown;
+  }, [selectedSeatIds, seats]);
+
   const snackTotal = useMemo(() => {
     if (!snacks) return 0;
     return Object.entries(selectedSnacks).reduce((sum, [id, qty]) => {
@@ -104,24 +121,44 @@ export default function SeatSelectionPage() {
   return (
     <div className="min-h-screen bg-background pb-32">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-50">
+      <div className="bg-white border-b sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href={`/movies/${show.movieId}`}>
-              <Button variant="ghost" size="icon" className="rounded-full">
+              <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
             </Link>
             <div>
-              <h1 className="font-bold text-lg leading-tight">Kung Fu Panda 4</h1>
+              <h1 className="font-bold text-lg leading-tight">{show.movie?.title || "Movie"}</h1>
               <p className="text-xs text-muted-foreground">
-                {format(new Date(show.showTime), "EEE, d MMM • h:mm a")} • Hall 1
+                {format(new Date(show.showTime), "EEE, d MMM • h:mm a")} • {show.theatre?.name || "Theatre"}
               </p>
             </div>
           </div>
-          <Button variant="outline" size="sm" className="hidden md:flex border-primary text-primary hover:bg-primary/5">
-            {selectedSeatIds.length} Seats Selected
-          </Button>
+          
+          {selectedSeatIds.length > 0 ? (
+            <div className="flex items-center gap-4">
+              <div className="hidden sm:flex flex-col items-end">
+                <span className="text-xs text-muted-foreground">{selectedSeatIds.length} seat{selectedSeatIds.length > 1 ? 's' : ''} • ₹{seatTotal}</span>
+                <span className="text-xs text-primary font-medium">
+                  {seats?.filter(s => selectedSeatIds.includes(s.id)).map(s => s.seatNumber).join(", ")}
+                </span>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="border-primary text-primary hover:bg-primary/5"
+                onClick={() => setIsPaymentOpen(true)}
+              >
+                {selectedSeatIds.length} Seats Selected
+              </Button>
+            </div>
+          ) : (
+            <Button variant="outline" size="sm" className="border-primary/20 text-muted-foreground">
+              Select seats to continue
+            </Button>
+          )}
         </div>
       </div>
 
@@ -162,7 +199,7 @@ export default function SeatSelectionPage() {
                   {/* Movie Info */}
                   <div className="flex gap-4">
                     <div className="flex-1">
-                      <h3 className="font-bold">Kung Fu Panda 4</h3>
+                      <h3 className="font-bold">{show.movie?.title || "Movie"}</h3>
                       <p className="text-sm text-muted-foreground">Hindi, 2D</p>
                       <p className="text-sm text-muted-foreground mt-1">
                         {format(new Date(show.showTime), "EEE, d MMM • h:mm a")}
@@ -170,13 +207,24 @@ export default function SeatSelectionPage() {
                     </div>
                   </div>
 
-                  {/* Seat Breakdown */}
+                  {/* Seat Breakdown with category details */}
                   <div className="space-y-2 border-b pb-4">
                     <div className="flex justify-between text-sm">
-                      <span>{selectedSeatIds.length} Tickets</span>
+                      <span>{selectedSeatIds.length} Ticket{selectedSeatIds.length > 1 ? 's' : ''}</span>
                       <span className="font-medium">₹{seatTotal}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {Object.entries(seatBreakdown).map(([category, { count, total }]) => (
+                        <span 
+                          key={category}
+                          className="inline-flex items-center gap-1 px-2 py-1 bg-secondary rounded-md text-xs"
+                        >
+                          <span className="text-muted-foreground">{category}:</span>
+                          <span className="font-medium">{count} × ₹{Math.round(total / count)}</span>
+                        </span>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
                       Seats: {seats?.filter(s => selectedSeatIds.includes(s.id)).map(s => s.seatNumber).join(", ")}
                     </p>
                   </div>
