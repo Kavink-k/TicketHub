@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createBooking, getUserBookings, getBookingById, getCurrentUser } from "@/lib/data-service";
+import { createBooking, getUserBookings, getBookingById, getCurrentUser, getSeatsForShow, getSnacks as getSnacksData } from "@/lib/data-service";
 import { useToast } from "@/hooks/use-toast";
 
 type CreateBookingInput = {
@@ -18,15 +18,23 @@ export function useCreateBooking() {
       if (!user) {
         throw new Error("You must be logged in to create a booking");
       }
-      
-      const snacksWithPrices = data.snacks?.map(s => ({
-        ...s,
-        price: s.quantity * 12 // Simplified price calculation
-      })) || [];
-      
-      const totalPrice = snacksWithPrices.reduce((sum, s) => sum + s.price, 0) + 
-        data.seatIds.length * 12; // Simplified seat price
-      
+
+      // Get actual seat prices from the data service
+      const seats = getSeatsForShow(data.showId);
+      const seatTotal = data.seatIds.reduce((sum, seatId) => {
+        const seat = seats.find(s => s.id === seatId);
+        return sum + (seat?.price || 12);
+      }, 0);
+
+      // Get actual snack prices
+      const snacksData = getSnacksData();
+      const snackTotal = (data.snacks || []).reduce((sum, snack) => {
+        const snackData = snacksData.find(s => s.id === snack.snackId);
+        return sum + (snackData?.price || 0) * snack.quantity;
+      }, 0);
+
+      const totalPrice = seatTotal + snackTotal;
+
       return createBooking({
         userId: user.id,
         showId: data.showId,

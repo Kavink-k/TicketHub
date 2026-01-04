@@ -3,7 +3,6 @@ import { fileURLToPath } from "url";
 import { build } from "vite";
 
 // Build script for production deployment
-// This script builds both the frontend and prepares for server deployment
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,15 +10,16 @@ const __dirname = path.dirname(__filename);
 async function buildClient() {
   console.log("🏗️  Building client...");
 
-  const projectRoot = path.resolve(__dirname, "..");
+  const clientRoot = path.resolve(__dirname, "..");
+  const projectRoot = path.resolve(clientRoot, "..");
 
   await build({
-    root: path.resolve(projectRoot, "client"),
+    root: clientRoot,
     build: {
       outDir: path.resolve(projectRoot, "dist/public"),
       emptyOutDir: true,
     },
-    configFile: path.resolve(projectRoot, "client/vite.config.ts"),
+    configFile: path.resolve(clientRoot, "vite.config.ts"),
   });
 
   console.log("✅ Client built successfully!");

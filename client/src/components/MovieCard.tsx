@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { type Movie } from "@/shared/schema";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 interface MovieCardProps {
   movie: Movie;
@@ -9,6 +10,17 @@ interface MovieCardProps {
 }
 
 export function MovieCard({ movie, className }: MovieCardProps) {
+  const [imageError, setImageError] = useState(false);
+
+  const fallbackImage = `data:image/svg+xml,${encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">
+      <rect fill="#1a1a2e" width="300" height="450"/>
+      <text fill="#ffffff" font-family="Arial" font-size="24" x="50%" y="50%" text-anchor="middle" dominant-baseline="middle">
+        ${movie.title.substring(0, 15)}...
+      </text>
+    </svg>
+  `)}`;
+
   return (
     <Link href={`/movies/${movie.id}`}>
       <div className={cn(
@@ -18,9 +30,10 @@ export function MovieCard({ movie, className }: MovieCardProps) {
         {/* Poster Container */}
         <div className="relative aspect-[2/3] rounded-xl overflow-hidden shadow-lg shadow-black/5 border border-border/50">
           <img 
-            src={movie.posterUrl} 
+            src={imageError ? fallbackImage : movie.posterUrl}
             alt={movie.title}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            onError={() => setImageError(true)}
           />
           
           {/* Rating Badge */}

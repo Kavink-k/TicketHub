@@ -1,0 +1,63 @@
+[
+  {
+    "id": 1,
+    "name": "Popcorn (Large)",
+    "price": 8.99,
+    "imageUrl": "https://images.unsplash.com/photo-1578849278619-e73505e9610f?w=200"
+  },
+  {
+    "id": 2,
+    "name": "Popcorn (Medium)",
+    "price": 6.99,
+    "imageUrl": "https://images.unsplash.com/photo-1578849278619-e73505e9610f?w=200"
+  },
+  {
+    "id": 3,
+    "name": "Soft Drink (Large)",
+    "price": 5.99,
+    "imageUrl": "https://images.unsplash.com/photo-1581636625402-29b2a704ef13?w=200"
+  },
+  {
+    "id": 4,
+    "name": "Soft Drink (Medium)",
+    "price": 4.99,
+    "imageUrl": "https://images.unsplash.com/photo-1581636625402-29b2a704ef13?w=200"
+  },
+  {
+    "id": 5,
+    "name": "Hot Dog",
+    "price": 7.99,
+    "imageUrl": "https://images.unsplash.com/photo-1612392062631-94dd858cba88?w=200"
+  },
+  {
+    "id": 6,
+    "name": "Nachos with Cheese",
+    "price": 9.99,
+    "imageUrl": "https://images.unsplash.com/photo-1576506295286-5cda18df43e7?w=200"
+  },
+  {
+    "id": 7,
+    "name": "Candy Bar",
+    "price": 3.99,
+    "imageUrl": "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=200"
+  },
+  {
+    "id": 8,
+    "name": "Ice Cream (Scoop)",
+    "price": 4.49,
+    "imageUrl": "https://images.unsplash.com/photo-1560008581-09826d1de69e?w=200"
+  },
+  {
+    "id": 9,
+    "name": "French Fries",
+    "price": 5.49,
+    "imageUrl": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=200"
+  },
+  {
+    "id": 10,
+    "name": "Water Bottle",
+    "price": 2.99,
+    "imageUrl": "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=200"
+  }
+]
+
