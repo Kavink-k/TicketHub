@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: tickethub
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm run preview
+    envVars:
+      - key: NODE_VERSION
+        value: "22.16.0"
+      - key: NPM_CONFIG_LOGLEVEL
+        value: "info"
+
